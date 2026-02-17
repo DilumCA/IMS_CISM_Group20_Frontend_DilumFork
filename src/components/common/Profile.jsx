@@ -33,6 +33,8 @@ import { storage } from "../../firebaseconfig";
 import { uuidv4 } from '@firebase/util';
 import { CircularProgress } from "@mui/material";
 import { useUserData } from '../Contexts/UserContext.jsx';
+import { validateFile } from '../../utils/fileValidation';
+
 
 export default function Profile() {
   const [role, setRole] = useState("");
@@ -119,14 +121,15 @@ export default function Profile() {
     setData(originalData);
   };
 
-    // Upload file
+  // Upload file
     const uploadFile =() => {
 
       if (image === null) {
          return;
       }
-      const imagePath = `img/${image.name + uuidv4()}`;
-      const imageRef = ref(storage,imagePath);
+      const fileExtension = image.name.split('.').pop().toLowerCase();
+const imagePath = `img/${uuidv4()}.${fileExtension}`;
+const imageRef = ref(storage, imagePath);
       const uploadFile = uploadBytesResumable(imageRef, image);
   
       uploadFile.on('state_changed', (snapshot) => {
@@ -157,17 +160,20 @@ export default function Profile() {
          console.log(downloadURL);
           console.log(imageUrl);
          
-          axios
-             .put(`${BASE_URL}uploadImage`,{imageUrl:downloadURL}, {
-               headers: { Authorization: `Bearer ${token}` },
-             })
-             .then((response) => {
-                console.log(response.data.msg);
-                fetchUserData();
-             })
-             .catch((error) => {
-               console.log(error);
-             });
+        axios.put(
+  `${BASE_URL}uploadImage`,
+  { imageUrl: downloadURL, userId: localStorage.getItem('userId') },
+  {
+    headers: { Authorization: `Bearer ${token}` }
+  }
+)
+.then((response) => {
+  console.log(response.data.msg);
+  fetchUserData();
+})
+.catch((error) => {
+  console.log(error);
+});
   
         });
         setImage(null);
@@ -263,15 +269,29 @@ const handleSubmit = (e) => {
                         alt=""
                     />
                   </AspectRatio>
-                  <input
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      id="icon-button-file"
-                      type="file"
-                      onChange={(event) => {
-                        setImage(event.target.files[0]);
-                      }}
-                    />
+                 <input
+  accept="image/jpeg,image/png"
+  style={{ display: 'none' }}
+  id="icon-button-file"
+  type="file"
+  onChange={(event) => {
+    const file = event.target.files[0];
+    const { isValid, errors } = validateFile(file, 'image');
+    
+    if (!isValid) {
+      Swal.fire({
+        title: 'Invalid Image',
+        text: errors.join(' '),
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      event.target.value = '';
+      return;
+    }
+    
+    setImage(file);
+  }}
+/>
                  <label htmlFor="icon-button-file">
                   <IconButton
                     aria-label="upload new picture"
