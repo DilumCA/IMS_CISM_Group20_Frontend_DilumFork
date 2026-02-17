@@ -20,7 +20,7 @@ import { Button,
 import { useDropzone } from 'react-dropzone';
 import { Box } from '@mui/system';
 import Swal from 'sweetalert2';
-
+import { validateFile } from '../../utils/fileValidation'; 
 
 
 export default function EditCvfile({open, handleClose, internId,refreshData}) {
@@ -31,12 +31,24 @@ export default function EditCvfile({open, handleClose, internId,refreshData}) {
   const token = localStorage.getItem('token');
   const [inputs , setInputs ] = useState({});
   const [oldCvPath, setOldImagePath] = useState(null);
-  const {getRootProps, getInputProps} = useDropzone({
-    onDrop: (acceptedFiles) => {
-      setCV(acceptedFiles[0]);
-      setcvUrl(URL.createObjectURL(acceptedFiles[0]));
+  const { getRootProps, getInputProps } = useDropzone({
+  onDrop: (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    const { isValid, errors } = validateFile(file, 'cv');
+    if (!isValid) {
+      Swal.fire({
+        icon: 'error',
+        text: errors.join('\n'),
+        customClass: { container: 'my-swal', confirmButton: 'my-swal-button' }
+      });
+      setCV(null);
+      setcvUrl(null);
+      return;
     }
-  });
+    setCV(file);
+    setcvUrl(URL.createObjectURL(file));
+  }
+});
 
 
           const uploadFile = useCallback(() => {
@@ -167,13 +179,28 @@ export default function EditCvfile({open, handleClose, internId,refreshData}) {
               readOnly: true,
             }}
           />
-          <input
-            type="file"
-            style={{ display: 'none' }}
-            id="hidden-file"
-            accept="application/pdf"
-            onChange={(e) => setCV((prev) => e.target.files[0])}
-          />
+        <input
+  type="file"
+  style={{ display: 'none' }}
+  id="hidden-file"
+  accept=".pdf,.doc,.docx"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    const { isValid, errors } = validateFile(file, 'cv');
+    if (!isValid) {
+      Swal.fire({
+        icon: 'error',
+        text: errors.join('\n'),
+        customClass: { container: 'my-swal', confirmButton: 'my-swal-button' }
+      });
+      setCV(null);
+      setcvUrl(null);
+      return;
+    }
+    setCV(file);
+    setcvUrl(URL.createObjectURL(file));
+  }}
+/>
           <Box {...getRootProps()} 
                     sx={{ 
                             border: '2px dashed #000', 
