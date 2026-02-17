@@ -68,13 +68,20 @@ const ViewCvfiles = ({ internId}) => {
 
       <DialogTitle>View CV</DialogTitle>
       <DialogContent>
-          {cvUrl ? (
-            <iframe src={cvUrl} width="100%" height="700px"></iframe>
-          ) : (
-            <Typography variant="h6" color="text.secondary">
-              CV is pending...             
-            </Typography>
-          )}
+         {cvUrl ? (
+    <iframe
+      src={cvUrl}
+      width="100%"
+      height="700px"
+      sandbox="allow-same-origin"
+      referrerPolicy="no-referrer"
+      title="CV Preview"
+    />
+  ) : (
+    <Typography variant="h6" color="text.secondary">
+      CV is pending...
+    </Typography>
+  )}
     </DialogContent>
     <DialogActions>
         <Button onClick={handleClose} color="primary">
