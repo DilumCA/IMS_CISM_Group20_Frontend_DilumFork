@@ -143,7 +143,7 @@ function Login() {
             });
           }
           // Handle failed attempts with remaining count
-          else if (errorData.attemptsRemaining !== undefined) {
+          else if (Object.prototype.hasOwnProperty.call(errorData, 'attemptsRemaining')) {
             const attemptsRemaining = errorData.attemptsRemaining;
             let iconType = 'warning';
             let titleText = 'Incorrect Password';
@@ -152,9 +152,8 @@ function Login() {
             if (attemptsRemaining === 1) {
               iconType = 'error';
               titleText = 'Final Attempt!';
-            } else if (attemptsRemaining === 2) {
-              iconType = 'warning';
             }
+            // Note: iconType is already 'warning' for 2+ attempts, no need to reassign
 
             Swal.fire({
               icon: iconType,
